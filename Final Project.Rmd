@@ -1,0 +1,294 @@
+---
+title: "Final Project"
+author: "William Tsang"
+date: "2023-10-30"
+output: html_document
+---
+# Data
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("C:/Users/wtsan/OneDrive/Desktop/Rutgers/Semesters/3-Junior/Fall 2023/Data Political Science/Final Project")
+EuData = read.csv("ESSDataOctober2023.csv")
+nrow(EuData)
+```
+
+### Age of respondents 
+```{r}
+#agea - Column 173
+#Subsetting by country and removing missing age data (999)
+Germany = subset(EuData, cntry == "DE"& agea != 999)
+France = subset(EuData, cntry == "FR" & agea != 999)
+
+#Range of respondent's ages
+range(Germany$agea)
+range(France$agea)
+
+#Median respondents age
+median(Germany$agea)
+median(France$agea)
+```
+Ages from German respondents range from 15 to 90 and ages from French respondents range from 16 to 90. The median age for Germany voters is 52 and for French voters is 50. 
+
+### Removing missing values 
+```{r}
+Germany$lrscale = ifelse(Germany$lrscale > 11, NA, Germany$lrscale)
+Germany$trstep = ifelse(Germany$trstep > 11, NA, Germany$trstep)
+Germany$vteurmmb = ifelse(Germany$vteurmmb > 66, NA, Germany$vteurmmb)
+Germany$euftf = ifelse(Germany$euftf > 11, NA, Germany$euftf)
+
+France$lrscale = ifelse(France$lrscale > 11, NA, France$lrscale)
+France$trstep = ifelse(France$trstep > 11, NA, France$trstep)
+France$vteurmmb = ifelse(France$vteurmmb > 66, NA, France$vteurmmb)
+France$euftf = ifelse(France$euftf > 11, NA, France$euftf)
+```
+
+### Subsetting Old and Young Voters
+```{r}
+#Old and Young voters separated from original dataset determined by median age in both countries. 
+GermanyOld = subset(Germany, agea >= 52)
+GermanyYoung = subset(Germany, agea < 52)
+FranceOld = subset(France, agea >=50)
+FranceYoung = subset(France, agea < 50)
+```
+
+### How voters lean politically
+```{r}
+#lrscale - Column 31
+#Scale from 1-10 (Left to Right)
+#Values of 77, 88, and 99 are removed which are missing values
+GermanyOldLean = subset(GermanyOld, lrscale < 11)
+GermanyYoungLean = subset(GermanyYoung, lrscale <11)
+FranceOldLean = subset(FranceOld,lrscale < 11)
+FranceYoungLean = subset(FranceYoung, lrscale < 11)
+
+#How voters on average lean politically by age group
+mean(GermanyOldLean$lrscale)
+mean(GermanyYoungLean$lrscale)
+mean(FranceOldLean$lrscale)
+mean(FranceYoungLean$lrscale)
+```
+On Average, older and younger German voters lean more left while older and younger French voters lean more moderate. There are weak positive correlations between the impact of age and how a voter leans among both German and French voters. 
+
+### Voters trust in the European Union Parliament
+```{r}
+#trstep - Column 45
+#Scale from 1-10 (No Trust to Complete Trust). 
+#Values of 77, 88, and 99 removed which are missing values
+GermanyOldTrust = subset(GermanyOld, trstep < 11)
+GermanyYoungTrust = subset(GermanyYoung, trstep < 11)
+FranceOldTrust = subset(FranceOld, trstep < 11)
+FranceYoungTrust = subset(FranceYoung, trstep < 11)
+
+##How much voters on average trust the EU Parliament politically by age group
+mean(GermanyOldTrust$trstep)
+mean(GermanyYoungTrust$trstep)
+mean(FranceOldTrust$trstep)
+mean(FranceYoungTrust$trstep)
+```
+There is a general lack of trust in the EU Parliament among all German and French respondents. Older German voters have slightly less trust toward the EU Parliament while younger French voters have slightly more in comparison to all voters. 
+
+### Voting for remaining member of EU or leaving 
+```{r}
+#Vteurmmb - Column 168
+#1 - Remain, 2 - Leave, 33- Blank Ballot, 44 -Spoil Ballot, 55 - Would not vote, 66 - Not eligible
+GermanyOldRemainLeave = subset(GermanyOld, vteurmmb < 66)
+GermanyYoungRemainLeave = subset(GermanyYoung, vteurmmb < 66)
+FranceOldRemainLeave = subset(FranceOld, vteurmmb < 66)
+FranceYoungRemainLeave = subset(FranceYoung, vteurmmb < 66)
+
+table(GermanyOldRemainLeave$vteurmmb)
+table(GermanyYoungRemainLeave$vteurmmb)
+table(FranceOldRemainLeave$vteurmmb)
+table(FranceYoungRemainLeave$vteurmmb)
+```
+Overall, there is a clear majority among German and French respondents that would vote to remain a part of the European Union. 
+
+### European Unification - Unify less or unify more
+```{r}
+#Euftf - Column 26
+#Scale from 1-10 (Too Far - Unify more)
+#Values of 77,88, and 99 removed which are missing values
+GermanyOldLessMore = subset(GermanyOld, euftf < 11)
+GermanyYoungLessMore  = subset(GermanyYoung, euftf < 11)
+FranceOldLessMore  = subset(FranceOld, euftf < 11)
+FranceYoungLessMore  = subset(FranceYoung, euftf < 11)
+
+mean(GermanyOldLessMore$euftf)
+mean(GermanyYoungLessMore$euftf)
+mean(FranceOldLessMore$euftf)
+mean(FranceYoungLessMore$euftf)
+```
+Most respondents aren't against more or less unification with Europe. Older and younger German voters lean towards more European unification. 
+
+# Statistical Significance
+
+### Does age have an impact on how much trust German and French voters have towards the EU Parliament?
+```{r}
+TestGerAgeTrust = t.test(Germany$trstep[Germany$agea >= 52], Germany$trstep[Germany$agea <52])
+summary(TestGerAgeTrust)
+TestGerAgeTrust$estimate
+TestGerAgeTrust$conf.int
+TestGerAgeTrust$p.value
+#Germany - Age does have an impact
+
+TestFrAgeTrust = t.test(France$trstep[France$agea >= 50], France$trstep[France$agea < 50])
+summary(TestFrAgeTrust)
+TestFrAgeTrust$estimate
+TestFrAgeTrust$conf.int
+TestFrAgeTrust$p.value
+#France - Age does have an impact
+```
+For both German and French voters, age is significant and did have have an impact on how much trust voters held towards the EU Parliament. 
+
+### Does Political Orientation have an impact on how much trust German and French voters have towards the EU Parliament?
+```{r}
+TestGerOrnTrust = t.test(Germany$trstep[Germany$lrscale < 6], Germany$trstep[Germany$lrscale >= 6])
+summary(TestGerOrnTrust)
+TestGerOrnTrust$estimate
+TestGerOrnTrust$conf.int
+TestGerOrnTrust$p.value
+#Germany - Political Orientation does have an impact
+
+TestFrOrnTrust = t.test(France$trstep[France$lrscale < 6], France$trstep[France$lrscale >= 6])
+summary(TestFrOrnTrust)
+TestFrOrnTrust$estimate
+TestFrOrnTrust$conf.int
+TestFrOrnTrust$p.value
+#France - Political Orientation doesn't have an impact
+```
+For German voters political orientation is significant towards how much trust voters have towards the EU Parliament. It is not significant for French voters.
+
+### Does German and French voters ages have an impact on how much they learn towards or against EU Unification
+```{r}
+TestGerAgeEU = t.test(Germany$euftf[Germany$agea >= 52], Germany$euftf[Germany$agea < 52])
+summary(TestGerAgeEU)
+TestGerAgeEU$estimate
+TestGerAgeEU$conf.int
+TestGerAgeEU$p.value
+#Germany - Age does have an impact 
+
+TestFrAgeEU = t.test(France$euftf[France$agea >= 50], France$euftf[France$agea > 50])
+summary(TestFrAgeEU)
+TestFrAgeEU$estimate
+TestFrAgeEU$conf.int
+TestFrAgeEU$p.value
+#France - Age doesn't have an impact
+```
+For German voters, age is significant towards how much they lean towards or against further EU unification. For French voters, age is not significant towards how much they lean towards or against further EU unification. 
+
+### Does German and French voters political orientation have an impact on how much they lean towards or against EU unification?
+```{r}
+TestGerOrnEU = t.test(Germany$euftf[Germany$lrscale < 6], Germany$euftf[Germany$lrscale >= 6])
+summary(TestGerOrnEU)
+TestGerOrnEU$estimate
+TestGerOrnEU$conf.int
+TestGerOrnEU$p.value
+#Germany -  Political Orientation does have an impact
+
+TestFrOrnEU = t.test(France$euftf[France$lrscale < 6], France$euftf[France$lrscale >= 6])
+summary(TestFrOrnEU)
+TestFrOrnEU$estimate
+TestFrOrnEU$conf.int
+TestFrOrnEU$p.value
+#France - Political Orientation doesn't have an impact
+```
+For German voters, political orientation is significant towards how much they lean for or against further EU unification. For French voters, political orientation is not significant towards how much they lean for or against further EU unification.
+
+### Does German and French voters age have an impact of whether they would vote to remain a member of the EU or not?
+```{r}
+TestGerAgeRemainLeave = t.test(Germany$vteurmmb[Germany$agea >= 52], Germany$vteurmmb[Germany$agea < 52])
+summary(TestGerAgeRemainLeave)
+TestGerAgeRemainLeave$estimate
+TestGerAgeRemainLeave$conf.int
+TestGerAgeRemainLeave$p.value
+#Germany - Age does have an impact
+
+TestFrAgeRemainLeave = t.test(France$vteurmmb[France$agea >= 50], France$vteurmmb[France$agea < 50])
+summary(TestFrAgeRemainLeave)
+TestFrAgeRemainLeave$estimate
+TestFrAgeRemainLeave$conf.int
+TestFrAgeRemainLeave$p.value
+#France - Age does have an impact
+```
+For both German, and French voters, age is significant towards how they would vote in regards to remaining a member of EU or not. 
+
+### Does German and French voters political orientation have an impact of whether they would vote to remain a member of the EU or not?
+```{r}
+TestGerOrnRemainLeave = t.test(Germany$vteurmmb[Germany$lrscale < 6], Germany$vteurmmb[Germany$lrscale >= 6])
+summary(TestGerOrnRemainLeave)
+TestGerOrnRemainLeave$estimate
+TestGerOrnRemainLeave$conf.int
+TestGerOrnRemainLeave$p.value
+#Germany - Political Orientation doesn't have an impact
+
+TestFrOrnRemainLeave = t.test(France$vteurmmb[France$lrscale < 6], France$vteurmmb[France$lrscale >= 6])
+summary(TestFrOrnRemainLeave)
+TestFrOrnRemainLeave$estimate
+TestFrOrnRemainLeave$conf.int
+TestFrOrnRemainLeave$p.value
+#France - Political Orientation does have an impact
+```
+For German voters, political orientation is not significant towards voting to remain a member of the EU or not. For French voters, political orientation is significant towards voting to remaining a member of the EU or not.
+
+# Visuals
+```{r}
+boxplot(trstep~lrscale, data = Germany,
+        main = "Trust in EU Parliament by political leaning in Germany",
+        xlab = "Left to Right Scale(Smaller is more left)",
+        ylab = "Trust in EU Parliament(Smaller is less trust)",
+        xlim = c(0,11),
+        ylim = c(0,10),
+        col = c("cadetblue1", "red", "yellow"),
+        cex.main = 0.8,
+        cex.axis = 0.7)
+
+boxplot(trstep~lrscale, data = France,
+        main = "Trust in EU Parliament by political leaning in France",
+        xlab = "Left to Right Scale(Smaller is more left)",
+        ylab = "Trust in EU Parliament(Smaller is less trust)",
+        xlim = c(0,11),
+        ylim = c(0,10),
+        col = c("blue", "white", "red"),
+        cex.main = 0.8,
+        cex.axis = 0.7)
+
+boxplot(euftf~lrscale, data = Germany,
+        main = "Attitudes towards EU Unification by political leaning in Germany",
+        xlab = "Left to Right Scale(Smaller is more left)",
+        ylab = "EU Unification Attitude(Smaller is less unification)",
+        xlim = c(0,11),
+        ylim = c(0,12),
+        col = c("cadetblue1", "white", "seagreen"),
+        cex.main = 0.8,
+        cex.axis = 0.7)
+
+boxplot(euftf~lrscale, data = France,
+        main = "Attitudes towards EU Unification by political leaning in France",
+        xlab = "Left to Right Scale(Smaller is more left)",
+        ylab = "EU Unification Attitude(Smaller is less unification)",
+        xlim = c(0,11),
+        ylim = c(0,10),
+        col = c("darkorange2", "firebrick1", "gold1"),
+        cex.main = 0.8,
+        cex.axis = 0.7)
+
+boxplot(lrscale~agea, data = Germany,
+        main = "Political Leanings in Germany by Age",
+        xlab = "Age",
+        ylab = "Left to Right Scale(Smaller is more left)",
+        xlim = c(0,75),
+        ylim = c(0,10),
+        col = c("chartreuse4", "red3", "seashell"),
+        cex.main = 0.8,
+        cex.axis = 0.7)
+
+boxplot(lrscale~agea, data = France,
+        main = "Political Leanings in France by Age",
+        xlab = "Age",
+        ylab = "Left to Right Scale(Smaller is more left)",
+        xlim = c(0,75),
+        ylim = c(0,10),
+        col = c("lightblue", "gold3", "indianred1"),
+        cex.main = 0.8,
+        cex.axis = 0.7)
+```
